@@ -11,7 +11,7 @@ The character traits for a given type define properties of this character type s
 Each set of character traits is specified as a template specialization of this class template that has to define the public members listed below, which shall behave as explained, although the internals on how this is achieved can be freely implemented in the class template specialization for the type
 */
 
-#include "allocator.hh"
+#include "./../../allocator/allocator.hh"
 
 /* Include guards */
 #ifndef CC_TOKENIZER_STRING_CHARACTER_TRAITS_HH
