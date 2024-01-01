@@ -57,7 +57,7 @@ Overall, this class provides a comprehensive and efficient implementation for ha
 
 ## Dependencies
 
-This library has a dependency on the allocator class, which is available in the KHAAdotPK/allocator repository. Ensure that you have the allocator library installed or included in your project before using this string library. You can achieve this by cloning the KHAAdotPK/allocator repository into your project's lib folder/directory.
+This library has a dependency on the allocator class, which is available in the [KHAAdotPK/allocator](https://github.com/KHAAdotPK/allocator) repository. Ensure that you have the allocator library installed or included in your project before using this string library. You can achieve this by cloning the [KHAAdotPK/allocator](https://github.com/KHAAdotPK/allocator) repository into your project's lib folder/directory.
 
 __Example Usage__:
 ```C++
