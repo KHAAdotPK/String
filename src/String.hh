@@ -316,7 +316,7 @@ class String {
       }
 
       /* pos, an unsigned number */
-      String(cc_tokenizer::String<E, T, A>::size_type pos)
+      String(typename cc_tokenizer::String<E, T, A>::size_type pos)
       {
 	       pointer new_str = NULL;
 	       cc_tokenizer::allocator<E> alloc_obj;
@@ -476,13 +476,23 @@ class String {
          
       }
 
+      /* TODO, to be implemented. If need arrises */
+      String<E, T, A> operator=(const_pointer ptr)
+      {
+         cc_tokenizer::String<char> ret;
+
+         return ret;
+      }
+
       String<E, T, A> operator=(String<E, T, A>& ref)
       {          
           cc_tokenizer::allocator<E> alloc_obj;
             
           try  
-          {                  
+          {   
+              //std::cout<< " -> ref.capacity() = " << ref.capacity() << std::endl;               
               this->str = alloc_obj.allocate(ref.capacity());
+              //this->str = cc_tokenizer::allocator<E>().allocate();
               this->size_of_str = ref.size();
               this->capacity_of_str = ref.capacity();                            
           }
@@ -514,6 +524,20 @@ class String {
           std::memcpy(this->str, ref.c_str(), ref.size());
                     
           return *this;
+      }
+
+      bool operator==(const String<E, T, A>& ref)
+      {
+         bool ret = false;
+
+         //std::cout<< "Literla = " << str << " ==== " << ref.str << std::endl;
+
+         if (!compare(ref))
+         {
+             ret = true;
+         }  
+
+         return ret;
       }
                   
       void operator+=(E c)
@@ -547,7 +571,7 @@ class String {
          //std::cout<<"capacity = "<<capacity_of_str<<", size = "<<size_of_str<<std::endl; 
       }
 
-      String<E, T, A>& operator+(const String<E, T, A>& ref) throw(std::length_error) {
+      String<E, T, A> operator+(const String<E, T, A>& ref) throw(std::length_error, std::bad_alloc) {
       
          pointer new_str;
          allocator<E> alloc_obj;
@@ -556,8 +580,10 @@ class String {
            
             throw std::length_error("cc_tokenizer::String<>::operator+(const String<>&) - Integer overflow.");   
          }
+
+         //std::cout<< "The size = " << size() + ref.size() << ", max_size() = " << max_size() << std::endl;
          
-         try {                                                      
+         /*try*/ {                                                      
             new_str = alloc_obj.allocate(size() + ref.size());
             
             if ( new_str ) {
@@ -570,13 +596,16 @@ class String {
                str = new_str;    
                size_of_str = size() + ref.size();
                capacity_of_str = size();
-            }
-            
+            }            
          }
-         catch(std::bad_alloc& e) {
+
+         //std::cout<< str << std::endl;
+
+         /*catch(std::bad_alloc& e) {
+            std::cout<<" Caught it......." << std::endl;
          }
          catch(std::length_error& e) {
-         }
+         }*/
          
          return *this;
       }
@@ -746,22 +775,22 @@ class String {
       size_type find(value_type c, size_type pos = 0) const {
      
          /*
-	  * TODO, sizeof of value_type should be a function
-	  */
+	       * TODO, sizeof of value_type should be a function
+	       */
          String<E, T, A> str(1, c);
-      
+               
          return find(str, pos);
       }  
       
-      size_type find(const String<E, T, A>& str, size_type pos = 0) const {
-      
-         size_type ret = String<E, T, A>::npos;
-         
+      size_type find(const String<E, T, A>& str, size_type pos = 0) const
+      {      
+         size_type ret = cc_tokenizer::String<E, T, A>::npos; 
+                           
          if ( pos < size() && str.size() <= (size() - pos) ) {
          
             size_type i = pos, idx = pos, j = 0;
             
-            for (; i < size(); ) {
+            for (; i < size();) {
             
                if ( T::eq(this->str[i], str[i - idx]) ) {
                
