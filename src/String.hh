@@ -265,6 +265,184 @@ class String {
          }
       }
 
+      /**
+       * Constructor: String(double n, unsigned int precision = 12)
+       * 
+       * This constructor initializes a String object by converting a double-precision
+       * floating-point number into its character (string) representation, with an
+       * optional precision for the fractional part. The resulting string is stored 
+       * in dynamically allocated memory.
+       * 
+       * Parameters:
+       * - n: The double value to be converted into a string.
+       * - precision (optional): Specifies the number of digits to retain in the 
+       *   fractional part of the number. Defaults to 12 if not provided.
+       * 
+       * Functionality:
+       * - Handles both positive and negative numbers. If the input number is negative, 
+       *   the minus sign is added to the string at the end.
+       * - Separates the integer part and fractional part of the number.
+       * - The fractional part is calculated by multiplying by powers of 10 up to the 
+       *   specified precision.
+       * - Memory is dynamically allocated to store the resulting string, including 
+       *   space for leading/trailing zeros and the decimal point.
+       * - Exception handling is implemented to catch bad memory allocations and 
+       *   length errors.
+       * 
+       * Edge Cases:
+       * - Handles small fractions by adding leading zeros in the fractional part.
+       * - Correctly handles numbers with a large number of trailing zeros.
+       * - If the precision exceeds the significant digits, additional zeros are added 
+       *   to the fractional part as necessary.
+       * 
+       * Exceptions:
+       * - If memory allocation fails (std::bad_alloc), the string is set to NULL.
+       * - If a length error occurs (std::length_error), the string is also set to NULL.
+       */
+      String(double n, unsigned int precision = 12)
+      {
+          unsigned int i = 0, j = 0;           
+          bool negative_or_not_flag = (n < 0) ? true : false;
+          pointer new_str = NULL;
+
+          str = NULL;
+          size_of_str = 0;
+          capacity_of_str = 0;
+
+          if (negative_or_not_flag)
+          {
+              n = (-1) * n;
+          }
+
+          long long int_part = static_cast<long long>(n);          
+          long long multiplier = 1;
+
+          for (; i < precision;)
+          {
+              multiplier = multiplier * 10; 
+
+              if (static_cast<long long>((n - int_part)*multiplier) != 0)
+              {                 
+                  break;                  
+              }
+
+              i++;
+          }
+
+          multiplier = 1;
+
+          for (; j < precision;)
+          {
+              multiplier = multiplier * 10; 
+              j++;
+          }
+
+          j = 0;
+
+          long long fractional_part = static_cast<long long>((n - int_part)*multiplier);
+                                        
+          try 
+          {
+               /* Deal with fractional portion */
+	            do 
+               {
+	                 new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1); 
+	                 T::copy(new_str + 1, str, size_of_str);
+                    value_type rem = value_type(fractional_part % 10 + '0') /* get remainder for the unit place */;
+	                 T::assign(*new_str, rem);
+
+                    if ( str ) 
+                    {
+	                     cc_tokenizer::allocator<char>().deallocate(str, size_of_str);
+	                 }
+
+	                 str = new_str;
+	                 size_of_str = size_of_str + 1;
+	                 capacity_of_str = size_of_str;
+	            } while( (fractional_part = fractional_part / 10) > 0 ) /* Deducts multiple of 10 and stores back the remainder */; 
+               if (i > 0)
+               {
+                  new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + i);
+                  T::copy(new_str + i, str, size_of_str); 
+
+                  for (; j < i;)
+                  {
+                     new_str[j] = '0';
+
+                     j++;
+                  }
+
+                  if ( str ) 
+                  {
+	                  cc_tokenizer::allocator<char>().deallocate(str, size_of_str);
+	               }
+
+                  str = new_str;
+	               size_of_str = size_of_str + i;
+	               capacity_of_str = size_of_str;
+
+                  i = 0;
+               }
+
+               /* Deal with decil point */
+               new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1);
+               T::copy(new_str + 1, str, size_of_str);                              
+               new_str[0] = '.';
+               if ( str ) 
+               {
+	               cc_tokenizer::allocator<char>().deallocate(str, size_of_str);
+	            }
+               str = new_str;
+	            size_of_str = size_of_str + 1;
+	            capacity_of_str = size_of_str;
+
+               /* Deal with the whole number portion */
+               do 
+               {
+	                 new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1); 
+	                 T::copy(new_str + 1, str, size_of_str);
+                    value_type rem = value_type(int_part % 10 + '0') /* get remainder for the unit place */;
+	                 T::assign(*new_str, rem);
+
+                    if ( str ) 
+                    {
+	                     cc_tokenizer::allocator<char>().deallocate(str, size_of_str);
+	                 }
+
+	                 str = new_str;
+	                 size_of_str = size_of_str + 1;
+	                 capacity_of_str = size_of_str;
+	            } while( (int_part = int_part / 10) > 0 ) /* Deducts multiple of 10 and stores back the remainder */; 
+
+                /* Deal with science */
+               if (negative_or_not_flag) 
+               {
+                   new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1);
+                   T::copy(new_str + 1, str, size_of_str);                              
+                   new_str[0] = '-';
+                   if ( str ) 
+                   {
+	                   cc_tokenizer::allocator<char>().deallocate(str, size_of_str);
+	                }
+                   str = new_str;
+	                size_of_str = size_of_str + 1;
+	                capacity_of_str = size_of_str;
+               }            
+          }
+          catch (std::bad_alloc &e) 
+          {
+	           str = NULL;
+	           size_of_str = 0;
+	           capacity_of_str = 0;
+	       }
+	       catch (std::length_error &e)
+          {
+	           str = NULL;
+	           size_of_str = 0;
+	           capacity_of_str = 0;
+	       }     
+      }
+      
       /* --------------------------------------------------------- */
       /*     Converts a number into an instance of String<...>     */
       /* The following two constructors does as stated previously  */
