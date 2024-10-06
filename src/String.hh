@@ -10,6 +10,10 @@
 #ifndef	CC_TOKENIZER_STRING_HH
 #define	CC_TOKENIZER_STRING_HH
 
+#ifndef CC_TOKENIZER_PRECISION_OF_DOUBLE_TO_STRING_HH
+#define CC_TOKENIZER_PRECISION_OF_DOUBLE_TO_STRING_HH 6
+#endif
+
 namespace cc_tokenizer {
 
 template < typename E, class T = string_character_traits<E>, class A = allocator<E> >
@@ -276,7 +280,7 @@ class String {
        * Parameters:
        * - n: The double value to be converted into a string.
        * - precision (optional): Specifies the number of digits to retain in the 
-       *   fractional part of the number. Defaults to 12 if not provided.
+       *   fractional part of the number. Defaults to `CC_TOKENIZER_PRECISION_OF_DOUBLE_TO_STRING_HH` if not provided.
        * 
        * Functionality:
        * - Handles both positive and negative numbers. If the input number is negative, 
@@ -298,39 +302,44 @@ class String {
        * Exceptions:
        * - If memory allocation fails (std::bad_alloc), the string is set to NULL.
        * - If a length error occurs (std::length_error), the string is also set to NULL.
+       * Note:
+       * - `CC_TOKENIZER_PRECISION_OF_DOUBLE_TO_STRING_HH` is a macro defined in the same file (String.hh) to set the default precision.
        */
-      String(double n, unsigned int precision = 12)
+      String(double n, unsigned int precision = CC_TOKENIZER_PRECISION_OF_DOUBLE_TO_STRING_HH)
       {
-          unsigned int i = 0, j = 0;           
-          bool negative_or_not_flag = (n < 0) ? true : false;
-          pointer new_str = NULL;
+          unsigned int i = 0, j = 0; // `i` keeps track of leading zeros in the fractional part, `j` controls the loop
+          bool negative_or_not_flag = (n < 0) ? true : false; // Flag for negative number
+          pointer new_str = NULL; // New string pointer for storing result
 
-          str = NULL;
+          str = NULL; // Initialize member variables
           size_of_str = 0;
           capacity_of_str = 0;
 
           if (negative_or_not_flag)
           {
-              n = (-1) * n;
+              n = (-1) * n; // If the number is negative, make it positive for easier processing
           }
 
-          long long int_part = static_cast<long long>(n);          
+          long long int_part = static_cast<long long>(n); // Extract the integer part of `n`         
           long long multiplier = 1;
 
+          // Loop to handle precision and determine leading zeros in the fractional part  
           for (; i < precision;)
           {
-              multiplier = multiplier * 10; 
+              multiplier = multiplier * 10; // Increment multiplier by 10 to scale the fractional part
 
+              // Check if the fractional part is non-zero at a certain precision level
               if (static_cast<long long>((n - int_part)*multiplier) != 0)
               {                 
-                  break;                  
+                  break; // Stop if fractional part is non-zero                 
               }
 
-              i++;
+              i++; // Count how many leading zeros are in the fractional part
           }
 
           multiplier = 1;
 
+          // Set the multiplier for extracting the fractional part based on precision  
           for (; j < precision;)
           {
               multiplier = multiplier * 10; 
@@ -339,35 +348,38 @@ class String {
 
           j = 0;
 
-          long long fractional_part = static_cast<long long>((n - int_part)*multiplier);
+          long long fractional_part = static_cast<long long>((n - int_part)*multiplier); // Compute fractional part
                                         
           try 
-          {
-               /* Deal with fractional portion */
+          {               
+               // Process the fractional portion and append it to the string
 	            do 
                {
+                    // Allocate space for the new string with one additional character 
 	                 new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1); 
-	                 T::copy(new_str + 1, str, size_of_str);
-                    value_type rem = value_type(fractional_part % 10 + '0') /* get remainder for the unit place */;
-	                 T::assign(*new_str, rem);
+	                 T::copy(new_str + 1, str, size_of_str); // Copy old string to the new allocated space
+                    value_type rem = value_type(fractional_part % 10 + '0'); // Get the least significant digit
+	                 T::assign(*new_str, rem); // Assign the remainder to the new string
 
+                    // Deallocate the old string memory 
                     if ( str ) 
                     {
 	                     cc_tokenizer::allocator<char>().deallocate(str, size_of_str);
 	                 }
 
-	                 str = new_str;
-	                 size_of_str = size_of_str + 1;
-	                 capacity_of_str = size_of_str;
+	                 str = new_str; // Update the string pointer to the new string
+	                 size_of_str = size_of_str + 1; // Update the size of the string
+	                 capacity_of_str = size_of_str; // Update capacity
 	            } while( (fractional_part = fractional_part / 10) > 0 ) /* Deducts multiple of 10 and stores back the remainder */; 
-               if (i > 0)
+               if (i > 0) // Handle leading zeros in fractional part
                {
                   new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + i);
                   T::copy(new_str + i, str, size_of_str); 
 
+                  // Add leading zeros
                   for (; j < i;)
                   {
-                     new_str[j] = '0';
+                     new_str[j] = '0'; // Append '0' for each leading zero
 
                      j++;
                   }
@@ -378,13 +390,13 @@ class String {
 	               }
 
                   str = new_str;
-	               size_of_str = size_of_str + i;
+	               size_of_str = size_of_str + i; // Update size with leading zeros
 	               capacity_of_str = size_of_str;
 
                   i = 0;
                }
 
-               /* Deal with decil point */
+               // Add the decimal point
                new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1);
                T::copy(new_str + 1, str, size_of_str);                              
                new_str[0] = '.';
@@ -395,14 +407,14 @@ class String {
                str = new_str;
 	            size_of_str = size_of_str + 1;
 	            capacity_of_str = size_of_str;
-
-               /* Deal with the whole number portion */
+               
+               // Process the integer part and append it to the string
                do 
                {
 	                 new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1); 
 	                 T::copy(new_str + 1, str, size_of_str);
-                    value_type rem = value_type(int_part % 10 + '0') /* get remainder for the unit place */;
-	                 T::assign(*new_str, rem);
+                    value_type rem = value_type(int_part % 10 + '0'); // Get the least significant digit
+	                 T::assign(*new_str, rem); // Assign the remainder to the new string
 
                     if ( str ) 
                     {
@@ -410,11 +422,11 @@ class String {
 	                 }
 
 	                 str = new_str;
-	                 size_of_str = size_of_str + 1;
+	                 size_of_str = size_of_str + 1; // Update size with each digit
 	                 capacity_of_str = size_of_str;
-	            } while( (int_part = int_part / 10) > 0 ) /* Deducts multiple of 10 and stores back the remainder */; 
+	            } while( (int_part = int_part / 10) > 0 ); // Continue until all digits are processed
 
-                /* Deal with science */
+               // Handle the negative sign if the number was negative
                if (negative_or_not_flag) 
                {
                    new_str = cc_tokenizer::allocator<char>().allocate(size_of_str + 1);
@@ -425,7 +437,7 @@ class String {
 	                   cc_tokenizer::allocator<char>().deallocate(str, size_of_str);
 	                }
                    str = new_str;
-	                size_of_str = size_of_str + 1;
+	                size_of_str = size_of_str + 1; // Update size to include the negative sign
 	                capacity_of_str = size_of_str;
                }            
           }
