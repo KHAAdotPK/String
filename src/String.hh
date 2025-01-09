@@ -667,11 +667,44 @@ class String {
       }
 
       /* TODO, to be implemented. If need arrises */
-      String<E, T, A> operator=(const_pointer ptr)
-      {
-         cc_tokenizer::String<char> ret;
+      String<E, T, A>& operator=(const_pointer ptr)
+      {                          
+         size_of_str = T::length(ptr);
+         capacity_of_str = size_of_str + size_type(1);
+         
+         try {
+         
+            str = cc_tokenizer::allocator<E>().allocate(capacity_of_str);
+            
+            if (str) {
+            
+               value_type eos = T::eos();   
+            
+               T::copy(str, ptr, size());
+               T::assign(str[size()], eos);               
+            }
+            else {
+            
+               str = NULL;
+               size_of_str = 0;
+               capacity_of_str = 0;
+            }
+            
+         }
+         catch(std::bad_alloc& e) {
+         
+            str = NULL;
+            size_of_str = 0;
+            capacity_of_str = 0;
+         }
+         catch(std::length_error& e) {
+         
+            str = NULL;
+            size_of_str = 0;
+            capacity_of_str = 0;
+         }
 
-         return ret;
+         return *this;
       }
 
       String<E, T, A> operator=(String<E, T, A>& ref)
